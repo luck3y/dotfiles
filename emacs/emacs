@@ -1,0 +1,140 @@
+;; get packages
+;;
+;; http://repo.or.cz/w/emacs.git/blob_plain/1a0a666f941c99882093d7bd08ced15033bc3f0c:/lisp/emacs-lisp/package.el
+;;
+;; To start using Marmalade,
+;;First, if you are not using Emacs 24, install package.el.
+;;Add to your .emacs: (require 'package)
+;;(add-to-list 'package-archives 
+;;    '("marmalade" .
+;;      "http://marmalade-repo.org/packages/"))
+;;(package-initialize)
+;; M-x eval-buffer to evaluate it, and then do M-x package-refresh-contents to load in the package listing.
+;;
+;; cmake-mode
+;; cmake-project
+;; cpputils-cmake
+;;
+
+(load-file "~/.emacs.d/package.el")
+
+(require 'package)
+(add-to-list 'package-archives 
+    '("marmalade" .
+      "http://marmalade-repo.org/packages/"))
+(package-initialize)
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(c-basic-offset 2)
+ '(c-default-style (quote ((c-mode . "whitesmith") (c++-mode . "whitesmith") (java-mode . "java") (awk-mode . "awk") (other . "gnu"))))
+ '(custom-safe-themes (quote ("8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "d677ef584c6dfc0697901a44b885cc18e206f05114c8a3b7fde674fce6180879" "e16a771a13a202ee6e276d06098bc77f008b73bbac4d526f160faa2d76c1dd0e" default)))
+ '(frame-background-mode dark)
+ '(inhibit-startup-screen t)
+ '(kill-ring-max 61))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+;; (invert-face 'default)
+
+(require 'cc-mode)
+(global-font-lock-mode 1)
+(global-set-key [(f9)] 'compile)
+(setq compilation-window-height 8)
+
+(c-toggle-hungry-state 1)
+(defun my-build-tab-stop-list (width)
+  (let ((num-tab-stops (/ 80 width))
+	(counter 1)
+	(ls nil))
+    (while (<= counter num-tab-stops)
+      (setq ls (cons (* width counter) ls))
+      (setq counter (1+ counter)))
+    (set (make-local-variable 'tab-stop-list) (nreverse ls))))
+(defun my-c-mode-common-hook ()
+  (setq tab-width 2)
+  (my-build-tab-stop-list tab-width)
+  (setq c-basic-offset tab-width)
+  (setq indent-tabs-mode nil)) ;; force only spaces for indentation                                                                                                                                                                                 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
+
+(setq path-to-ctags "/usr/bin/ctags") ;; 
+(defun create-tags (dir-name)
+    "Create tags file."
+    (interactive "DDirectory: ")
+    (shell-command
+     (format "%s -f %s/TAGS -e -R %s" path-to-ctags dir-name (directory-file-name dir-name)))
+  )
+
+(defadvice find-tag (around refresh-etags activate)
+   "Rerun etags and reload tags if tag not found and redo find-tag.              
+   If buffer is modified, ask about save before running etags."
+  (let ((extension (file-name-extension (buffer-file-name))))
+    (condition-case err
+    ad-do-it
+      (error (and (buffer-modified-p)
+          (not (ding))
+          (y-or-n-p "Buffer is modified, save it? ")
+          (save-buffer))
+         (er-refresh-etags extension)
+         ad-do-it))))
+
+(defun er-refresh-etags (&optional extension)
+  "Run etags on all peer files in current dir and reload them silently."
+  (interactive)
+  (shell-command (format "etags *.%s" (or extension "el")))
+  (let ((tags-revert-without-query t))  ; don't query, revert silently          
+    (visit-tags-table default-directory nil)))
+
+(defun maybe-cmake-project-hook ()
+  (if (file-exists-p "CMakeLists.txt") (cmake-project-mode)))
+(add-hook 'c-mode-hook 'maybe-cmake-project-hook)
+(add-hook 'c++-mode-hook 'maybe-cmake-project-hook)
+
+(global-set-key [f5] 'flymake-compile)
+
+(defun terminal-init-screen ()
+  "Terminal initialization function for GNU screen."
+  (when (boundp 'input-decode-map)
+    (define-key input-decode-map "[1;3C" [(meta right)])
+    (define-key input-decode-map "[1;3D" [(meta left)])
+
+    (define-key input-decode-map "[1;5C" [(control right)])
+    (define-key input-decode-map "[1;5D" [(control left)])
+    (define-key input-decode-map "[1;5A" [(control up)])
+    (define-key input-decode-map "[1;5B" [(control down)])))
+
+(global-set-key (kbd "<C-up>") 'shrink-window)
+(global-set-key (kbd "<C-down>") 'enlarge-window)
+(global-set-key (kbd "<C-left>") 'shrink-window-horizontally)
+(global-set-key (kbd "<C-right>") 'enlarge-window-horizontally)
+
+(global-set-key (kbd "<M-right>") 'other-window )
+(global-set-key (kbd "<M-left>") 'other-window )
+
+(require 'flymake)
+
+(add-hook 'c-mode-common-hook '(lambda () (c-set-style "whitesmith")))
+(setq-default indent-tabs-mode nil)
+(setq tab-width 2)
+(setq-default c-basic-offset 2)
+(setq c-basic-offset 2)
+
+(add-hook 'java-mode-hook (lambda ()
+                            (setq c-basic-offset 2
+                                  tab-width 2
+                                  indent-tabs-mode nil)))
+(add-hook 'java-mode-hook
+          (lambda ()
+            "Treat Java 1.5 @-style annotations as comments."
+            (setq c-comment-start-regexp "(@|/(/|[*][*]?))")
+            (modify-syntax-entry ?@ "< b" java-mode-syntax-table)))
+
+(load-file "~/.emacs.d/elpa/solarized-theme-1.0.0/solarized-dark-theme.el")
+
+
