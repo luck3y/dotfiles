@@ -19,3 +19,6 @@ defutf8 on
 hardstatus alwayslastline "%{-b gk}%-w%{+b kg}%50>%n %t%{-b gk}%+w%<"
 #
 
+vbell_msg "bell: window ~%" # Message for visual bell
+vbellwait 2 # Seconds to pause the screen for visual bell
+vbell off # Turns visual bell off
