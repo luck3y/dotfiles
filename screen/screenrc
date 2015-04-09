@@ -1,0 +1,21 @@
+autodetach on
+
+# don't display the copyright page
+startup_message off
+#
+# # fix other annoying defaults
+#defscrollback 999999
+deflogin off
+#
+# # setup custom bindings
+bind W windowlist
+#
+# # make shift-pageup work
+termcapinfo xterm ti@:te@
+#
+# # unicode
+defutf8 on
+#  
+hardstatus alwayslastline "%{-b gk}%-w%{+b kg}%50>%n %t%{-b gk}%+w%<"
+#
+
