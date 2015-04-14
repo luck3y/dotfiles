@@ -1,0 +1,18 @@
+set realname="Ken Wills"
+set from="ken@somewhere.com"
+set use_from=yes
+set edit_headers = yes
+set spoolfile="imaps://ken@mail.somewhere.com/INBOX"
+set folder="imaps://mail.somewhere.com/"
+set record="=Sent"
+set postponed="=Drafts"
+set ssl_starttls=yes
+set ssl_force_tls=yes
+unset imap_passive        
+set imap_check_subscribed
+set mail_check=60
+set timeout=10
+set header_cache=~/.hcache
+set sort = reverse-date-received
+set smtp_url="smtp://smtp.somewhere.com:25/"
+set editor="emacs -nw"
